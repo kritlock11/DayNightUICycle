@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-#pragma warning disable 0649
 
 namespace _Scripts
 {
@@ -18,8 +17,6 @@ namespace _Scripts
         private IInputManager _iInputManager;
         private IView _iView;
         
-        public float DeltaTime => Time.deltaTime / Variables.UpdateIntervals[_speedInd];
-
         public static GameTimeManager Instance => _instance;
         private static GameTimeManager _instance;
 
@@ -41,6 +38,8 @@ namespace _Scripts
 
             _iView.UpdateCurTime(_currentTime);
             OnInputSubscribe();
+            SetTimeScale();
+
         }
 
         private void Update()
@@ -79,7 +78,7 @@ namespace _Scripts
 
         private void CurTimeUpdate(int delta)
         {
-            if (ZeroSpeed())
+            if (IsZeroSpeed())
                 return;
 
             if (_timeSinceLastUpdate > delta)
@@ -89,28 +88,30 @@ namespace _Scripts
                 _iView.UpdateCurTime(_currentTime);
             }
 
-            _timeSinceLastUpdate += DeltaTime;
+            _timeSinceLastUpdate += Time.deltaTime;
         }
 
         private void OnSpeedUp()
         {
-            if (ZeroSpeed())
+            if (IsZeroSpeed())
                 return;
 
             SpeedUp();
+            SetTimeScale();
         }
 
         private void OnSpeedDown()
         {
-            if (ZeroSpeed())
+            if (IsZeroSpeed())
                 return;
 
-            SpeedDown();
+            SpeedDown();         
+            SetTimeScale();
         }
 
         private void OnSpeedPause()
         {
-            if (!ZeroSpeed())
+            if (!IsZeroSpeed())
             {
                 SetSpeedBeforePause(_speedInd);
                 SetSpeedInd(0);
@@ -120,13 +121,29 @@ namespace _Scripts
                 SetSpeedInd(_speedBeforePause);
                 SetSpeedBeforePause(-1);
             }
+            SetTimeScale();
         }
-
+        
+        private void SetTimeScale()
+        {
+            if (!IsZeroSpeed())
+            {
+                var len = Variables.UpdateIntervals.Length;
+                var scale = Variables.UpdateIntervals[len - _speedInd];
+                Time.timeScale = scale;
+            }
+            else
+            {
+                Time.timeScale = 0;
+            }
+        }
+        
         private void SetSpeedBeforePause(int speed) => _speedBeforePause = speed;
         private void SetSpeedInd(int speed) => _speedInd = speed;
-        private bool ZeroSpeed() => _speedInd == 0;
+        private bool IsZeroSpeed() => _speedInd == 0;
         private void SpeedUp() => _speedInd = Mathf.Clamp(_speedInd + 1, _minSpeed, _maxSpeed);
         private void SpeedDown() => _speedInd = Mathf.Clamp(_speedInd - 1, _minSpeed, _maxSpeed);
+
         
         private void OnInputSubscribe()
         {

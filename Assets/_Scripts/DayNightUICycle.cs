@@ -29,7 +29,7 @@ namespace _Scripts
 
         public void UpdatePositions()
         {
-            _phase -= GameTimeManager.Instance.DeltaTime * GameTimeSpeedCoefficient;
+            _phase -= Time.deltaTime * GameTimeSpeedCoefficient;
 
             UpdatePosition(_midnight, MidnightDefaultValue);
             UpdatePosition(_dawn, DawnDefaultValue);
